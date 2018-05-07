@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Change this location to somewhere where you want to put the data.
-data=$HOME/vystadial_cz
+data=/mnt/data/datasets
 
 # Load training parameters
 . ./env_voip_cs.sh
@@ -15,6 +15,10 @@ stage=0
 set -euo pipefail
 
 mkdir -p $data
+
+if [ ! -f PREPARED ] ; then
+    printf "\n\n\nThe script should FAIL because the DEPENDENCIES are NOT marked INSTALLED!\n\n\n\n"
+fi
 
 if [ $stage -le 0 ]; then
   local/download_cs_data.sh $data || exit 1;
