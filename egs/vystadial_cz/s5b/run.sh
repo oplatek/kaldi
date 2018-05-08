@@ -10,6 +10,8 @@ data=/mnt/data/datasets
 . ./path.sh
 
 stage=0
+chain_stage=0
+chain_train_stage=-10
 . utils/parse_options.sh
 
 set -euo pipefail
@@ -168,7 +170,7 @@ fi
 
 # Train a chain model
 if [ $stage -le 9 ]; then
-  local/chain/run_tdnn.sh --stage 0
+  local/chain/run_tdnn.sh --stage $chain_stage --train_stage $chain_train_stage
 fi
 
 # Don't finish until all background decoding jobs are finished.
