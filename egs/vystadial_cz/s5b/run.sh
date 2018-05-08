@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Change this location to somewhere where you want to put the data.
-data=$HOME/vystadial_cz
+data=/mnt/data/datasets
 
 # Load training parameters
 . ./env_voip_cs.sh
@@ -10,11 +10,18 @@ data=$HOME/vystadial_cz
 . ./path.sh
 
 stage=0
+chain_stage=0
+chain_train_stage=-10
+
 . utils/parse_options.sh
 
 set -euo pipefail
 
 mkdir -p $data
+
+if [ ! -f PREPARED ] ; then
+    printf "\n\n\nThe script should FAIL because the DEPENDENCIES are NOT marked INSTALLED!\n\n\n\n"
+fi
 
 if [ $stage -le 0 ]; then
   local/download_cs_data.sh $data || exit 1;
@@ -164,7 +171,7 @@ fi
 
 # Train a chain model
 if [ $stage -le 9 ]; then
-  local/chain/run_tdnn.sh --stage 0
+  local/chain/run_tdnn.sh --stage $chain_stage --train_stage $chain_train_stage
 fi
 
 # Don't finish until all background decoding jobs are finished.

@@ -193,6 +193,9 @@ fi
 
 
 if [ $stage -le 14 ]; then
+
+   # original options for commited results:
+   #  --trainer.num-chunk-per-minibatch=256,128,64 \
   steps/nnet3/chain/train.py --stage=$train_stage \
     --cmd="$decode_cmd" \
     --feat.online-ivector-dir=$train_ivector_dir \
@@ -208,11 +211,11 @@ if [ $stage -le 14 ]; then
     --trainer.num-epochs=15 \
     --trainer.frames-per-iter=3000000 \
     --trainer.optimization.num-jobs-initial=2 \
-    --trainer.optimization.num-jobs-final=12 \
+    --trainer.optimization.num-jobs-final=4 \
     --trainer.optimization.initial-effective-lrate=0.001 \
     --trainer.optimization.final-effective-lrate=0.0001 \
     --trainer.optimization.shrink-value=1.0 \
-    --trainer.num-chunk-per-minibatch=256,128,64 \
+    --trainer.num-chunk-per-minibatch=128,64,32 \
     --trainer.optimization.momentum=0.0 \
     --egs.chunk-width=$chunk_width \
     --egs.chunk-left-context=$chunk_left_context \
