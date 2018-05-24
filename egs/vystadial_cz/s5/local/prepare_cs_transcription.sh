@@ -6,7 +6,8 @@ locdict=$1; shift
 
 mkdir -p $locdict 
 
-perl local/phonetic_transcription_cs.pl $locdata/vocab-full.txt $locdict/cs_transcription.txt
+# change last argument to true if you want to generate all possible phones
+perl local/phonetic_transcription_cs.pl $locdata/vocab-full.txt $locdict/cs_transcription.txt false
 
 echo "--- Searching for OOV words ..."
 gawk 'NR==FNR{words[$1]; next;} !($1 in words)' \

@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 use Encode;
 
-# $ PhoneticTranscriptionCS.pl [inputFile inputFile2 ...] outputFile
+# $ PhoneticTranscriptionCS.pl [inputFile inputFile2 ...] outputFile use_all_phones
 #
 # Converts Czech text in CAPITALS in utf8 to Czech phonetic alphabet in
 # utf8. All input files will be concatenated into the output file. If no
@@ -19,6 +19,8 @@ use Encode;
 # script.
 
 my $enc = 'utf8';
+
+my $use_all_phones = pop @ARGV;
 
 my $out_fn = pop @ARGV;
 if ($out_fn) {
@@ -34,26 +36,37 @@ while (<>) {
 #            print encode($enc, $_), (' ' x 7), "sp\n";
 #            next
 #        }
-        chomp;
-        $_ = uc($_);
+        transcribe();
+    }
+}
 
-        print encode($enc, $_);
-        print(' ' x 7);
-        exceptions();
-        transcription();
-        tr/[A-Z]/[a-z]/;
-        prague2pilsen();
-        infreq();
+if ($use_all_phones eq "true") {
+    my @words = split(/ /, "žluťoučký kůň úpěl ďábelské ódy");
+    foreach (@words) {
+        transcribe();
+    }
+}
+
+sub transcribe {
+    chomp;
+    $_ = uc($_);
+
+    print encode($enc, $_);
+    print(' ' x 7);
+    exceptions();
+    transcription();
+    tr/[A-Z]/[a-z]/;
+    prague2pilsen();
+    infreq();
 
 #        while ($_ =~ /(.)/g) {
 #            $seen{$1}++;
 #        }
 
-        print encode($enc, $_);
-        print "\n";
-    }
-}
+    print encode($enc, $_);
+    print "\n";
 
+}
 #print "unique chars are: ";
 #foreach (sort(keys %seen)) {
 #    print encode($enc, $_);
