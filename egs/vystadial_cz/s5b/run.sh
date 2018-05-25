@@ -2,6 +2,7 @@
 
 # Change this location to somewhere where you want to put the data.
 data=/mnt/data/datasets
+outdir="$(dirname $0)/default_out_dir"
 
 # Load training parameters
 . ./env_voip_cs.sh
@@ -9,7 +10,7 @@ data=/mnt/data/datasets
 . ./cmd.sh
 . ./path.sh
 
-stage=0
+stage=-1
 chain_stage=0
 chain_train_stage=-10
 
@@ -23,8 +24,18 @@ if [ ! -f PREPARED ] ; then
     printf "\n\n\nThe script should FAIL because the DEPENDENCIES are NOT marked INSTALLED!\n\n\n\n"
 fi
 
-if [ $stage -le 0 ]; then
+
+if [ $stage -le -2 ]; then
   local/download_cs_data.sh $data || exit 1;
+fi
+
+
+if [ $stage -le -1 ] ; then
+    mkdir -p $outdir
+    for d in mfcc exp data lang_prep ; do
+        mkdir -p $outdir/$d
+        ln -f -s "$outdir/$d" $d
+    done
 fi
 
 lm="build3"
@@ -35,7 +46,7 @@ if [ $stage -le 1 ]; then
   local/create_LMs.sh data/local data/train/trans.txt \
     data/test/trans.txt data/local/lm "$lm"
 
-  gzip data/local/lm/$lm
+  gzip -f data/local/lm/$lm
 
   local/prepare_cs_transcription.sh data/local data/local/dict
 
