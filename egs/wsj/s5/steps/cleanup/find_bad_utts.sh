@@ -22,6 +22,8 @@ top_n_words=100 # Number of common words that we compile into each graph (most f
                 # in $lang/text.
 stage=-1
 cleanup=true
+make_lang=false
+make_feats=false
 # End configuration options.
 
 echo "$0 $@"  # Print the command line for logging
@@ -29,7 +31,7 @@ echo "$0 $@"  # Print the command line for logging
 [ -f path.sh ] && . ./path.sh # source the path.
 . parse_options.sh || exit 1;
 
-if [ $# != 4 ]; then
+if [ $# != 5 ]; then
   echo "$0: Warning: this script is deprecated and will be removed."
   echo "  ... please use steps/cleanup/clean_and_segment_data.sh,"
   echo " which produces the same output formats as this script"
@@ -48,6 +50,24 @@ data=$1
 lang=$2
 srcdir=$3
 dir=$4
+lm=$5
+. cmd.sh
+if $make_feats; then
+    echo "Create MFCC features and storing them (Could be large)."
+    steps/make_mfcc.sh --mfcc-config conf/mfcc.conf --cmd \
+      "run.pl" --nj 4 $data $data mfcc || exit 1;
+#    # Note --fake -> NO CMVN
+    steps/compute_cmvn_stats.sh $data \
+      make_mfcc/train mfcc || exit 1;
+fi
+
+if $make_lang; then
+    local/prepare_cs_transcription.sh . $lang/dict
+    local/create_phone_lists.sh $lang/dict
+    utils/prepare_lang.sh $lang/dict '_SIL_' $lang.tmp $lang
+    utils/format_lm.sh $lang $lm $lang/dict/lexicon.txt $lang
+fi
+
 
 for f in $data/text $lang/oov.int $srcdir/tree $srcdir/final.mdl \
     $lang/L_disambig.fst $lang/phones/disambig.int; do
