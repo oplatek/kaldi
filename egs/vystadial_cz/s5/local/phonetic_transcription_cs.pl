@@ -20,13 +20,25 @@ use Encode;
 
 my $enc = 'utf8';
 
-my $use_all_phones = pop @ARGV;
+my $print_coveragetxt_dict = pop @ARGV;
 
 my $out_fn = pop @ARGV;
 if ($out_fn) {
     close STDOUT;
     open STDOUT, '>', $out_fn or die "Couldn't open '$out_fn': $!";
 }
+
+
+my $coverage_txt = "žluťoučký kůň úpěl ďábelské ódy V přílivu žluťoučkých květů včelky se vznášejí hleď toť čarovný je loužek kde hedvábné štěstíčka září vodní žíňky běží kolem lesní tůně a kadeřemi svými čeří stříbrosvit měsíce qvído kouzelníkův učeň s ďolíčky utírá prach z vílích křídel ó náhlý úsvit oblažil zemětvář prolínajícím hřejivým dotekem svým";
+
+if ($print_coveragetxt_dict eq "true") {
+    my @words = split(/ /, $coverage_txt);
+    foreach (@words) {
+        transcribe();
+    }
+    exit 0;
+}
+
 
 my %seen = ();
 while (<>) {
@@ -36,13 +48,6 @@ while (<>) {
 #            print encode($enc, $_), (' ' x 7), "sp\n";
 #            next
 #        }
-        transcribe();
-    }
-}
-
-if ($use_all_phones eq "true") {
-    my @words = split(/ /, "žluťoučký kůň úpěl ďábelské ódy");
-    foreach (@words) {
         transcribe();
     }
 }
