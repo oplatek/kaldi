@@ -13,6 +13,7 @@ outdir="$(dirname $0)/default_out_dir"
 stage=-1
 chain_stage=0
 chain_train_stage=-10
+last_stage=9
 
 . utils/parse_options.sh
 
@@ -187,3 +188,10 @@ fi
 
 # Don't finish until all background decoding jobs are finished.
 wait
+
+if [ $stage -gt $last_stage ] ; then
+    echo "exiting after stage $stage because last_stage $last_stage"
+    exit 0
+fi
+
+echo "TODO1: align new data with gmm system (default tri3b) needed for chain_stage 11"
