@@ -48,6 +48,9 @@ while (<>) {
 #            print encode($enc, $_), (' ' x 7), "sp\n";
 #            next
 #        }
+        if (!($_ =~ /^[[:alnum:]]+|_.*/)) {
+            next;
+        }
         transcribe();
     }
 }
