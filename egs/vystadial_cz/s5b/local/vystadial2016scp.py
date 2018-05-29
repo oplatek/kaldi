@@ -16,9 +16,9 @@ def create_scpdir(vystdir, outdir):
     wav_scp = os.path.join(outdir, 'wav.scp')
     utt2spk = os.path.join(outdir, 'utt2spk')
     spk2utt = os.path.join(outdir, 'spk2utt')
-    trans_txt = os.path.join(outdir, 'trans_txt')
+    text = os.path.join(outdir, 'text')
     spk2gender = os.path.join(outdir, 'spk2gender')
-    with open(wav_scp, 'w') as w, open(utt2spk, 'w') as u, open(spk2utt, 'w') as s, open(trans_txt, 'wt', encoding='utf-8') as t, open(spk2gender, 'w') as g:
+    with open(wav_scp, 'w') as w, open(utt2spk, 'w') as u, open(spk2utt, 'w') as s, open(text, 'wt', encoding='utf-8') as t, open(spk2gender, 'w') as g:
         glob_pattern = os.path.join(vystdir, '*/*/*.wav')
         for wav_path in glob.glob(glob_pattern):
             wav_name = os.path.basename(wav_path)
@@ -31,7 +31,7 @@ def create_scpdir(vystdir, outdir):
             g.write('%s m\n' % wav_name)  # ignoring gender - use M - male all the times
 
     # sort the files
-    for file_name in [wav_scp, utt2spk, spk2utt, trans_txt, spk2gender]:
+    for file_name in [wav_scp, utt2spk, spk2utt, text, spk2gender]:
         sh('sort %s -k1,1 -u -o %s' % (file_name, file_name))
 
 
