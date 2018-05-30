@@ -16,6 +16,7 @@ chain_stage=0
 chain_train_stage=-10
 last_stage=14
 retrain_stage=0
+retrain_train_stage=-10
 
 . utils/parse_options.sh
 
@@ -240,5 +241,5 @@ fi
 # Train a chain model
 if [ $stage -le 14 ]; then
   init_model=/scratch/oplatek-code/opla/kaldi/egs/vystadial_cz/s5b/default_out_dir/exp/chain/tdnn1a_sp/27.mdl
-  local/chain/retrain_tdnn.sh --input_model $init_model --stage $retrain_stage
+  local/chain/retrain_tdnn.sh --input_model $init_model --stage $retrain_stage --train_stage $retrain_train_stage
 fi
