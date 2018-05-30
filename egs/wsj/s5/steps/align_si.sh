@@ -85,6 +85,7 @@ echo "$0: aligning data in $data using model from $srcdir, putting alignments in
 mdl="gmm-boost-silence --boost=$boost_silence `cat $lang/phones/optional_silence.csl` $dir/final.mdl - |"
 
 if $use_graphs; then
+    cat $srcdir/num_jobs
   [ $nj != "`cat $srcdir/num_jobs`" ] && echo "$0: mismatch in num-jobs" && exit 1;
   [ ! -f $srcdir/fsts.1.gz ] && echo "$0: no such file $srcdir/fsts.1.gz" && exit 1;
 
