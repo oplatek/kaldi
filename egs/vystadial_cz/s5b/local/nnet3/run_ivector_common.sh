@@ -9,6 +9,7 @@ set -euo pipefail
 # of usage.
 
 stage=0
+last_stage=6
 train_set=train
 test_sets="dev test"
 gmm=tri3b
@@ -93,6 +94,11 @@ if [ $stage -le 4 ]; then
     --num-threads 8 \
     ${temp_data_root}/${train_set}_sp_hires_subset 512 \
     exp/nnet3${nnet3_affix}/pca_transform exp/nnet3${nnet3_affix}/diag_ubm
+fi
+
+if [ 4 -ge $last_stage ] ; then
+    echo "$0 exiting after because last_stage $last_stage"
+    exit 0
 fi
 
 if [ $stage -le 5 ]; then

@@ -14,7 +14,8 @@ debug=false  # true | false
 stage=-1
 chain_stage=0
 chain_train_stage=-10
-last_stage=9
+last_stage=14
+retrain_stage=0
 
 . utils/parse_options.sh
 
@@ -194,7 +195,7 @@ fi
 wait
 
 if [ 9 -ge $last_stage ] ; then
-    echo "exiting after because last_stage $last_stage"
+    echo "$0 exiting after because last_stage $last_stage"
     exit 0
 fi
 
@@ -213,7 +214,7 @@ if [ $stage -le 11 ]; then
 fi
 
 if [ 11 -ge $last_stage ] ; then
-    echo "exiting after because last_stage $last_stage"
+    echo "$0 exiting after because last_stage $last_stage"
     exit 0
 fi
 
@@ -232,12 +233,12 @@ if [ $stage -le 13 ]; then
 fi
 
 if [ 13 -ge $last_stage ] ; then
-    echo "exiting after because last_stage $last_stage"
+    echo "$0 exiting after because last_stage $last_stage"
     exit 0
 fi
 
 # Train a chain model
-if [ $stage -le 9 ]; then
+if [ $stage -le 14 ]; then
   init_model=/scratch/oplatek-code/opla/kaldi/egs/vystadial_cz/s5b/default_out_dir/exp/chain/tdnn1a_sp/27.mdl
-  local/chain/retrain_tdnn.sh --stage 14 --input_model $init_model
+  local/chain/retrain_tdnn.sh --input_model $init_model --stage $retrain_stage
 fi

@@ -21,6 +21,7 @@ set -euo pipefail
 
 # First the options that are passed through to run_ivector_common.sh
 # (some of which are also used in this script directly).
+input_model="exp/chain/tdnn1a_sp/final.mdl"
 stage=0
 decode_nj=10
 train_set=vyst2016train
@@ -70,6 +71,22 @@ where "nvcc" is installed.
 EOF
 fi
 
+# The iVector-extraction and feature-dumping parts are the same as the standard
+# nnet3 setup, and you can skip them by setting "--stage 11" if you have already
+# run those things.
+# We intentionally skip 6 which train ivector
+local/nnet3/run_ivector_common.sh --stage $stage \
+                                  --last_stage 4 \
+                                  --train-set $train_set \
+                                  --gmm $gmm \
+                                  --nnet3-affix "$nnet3_affix" || exit 1;
+if [ $stage -le 6 ] ; then
+local/nnet3/run_ivector_common.sh --stage 6 \
+                                  --train-set $train_set \
+                                  --gmm $gmm \
+                                  --nnet3-affix "$nnet3_affix" || exit 1;
+fi
+
 
 # Problem: We have removed the "train_" prefix of our training set in
 # the alignment directory names! Bad!
@@ -81,6 +98,7 @@ lat_dir=exp/chain${nnet3_affix}/${gmm}_${train_set}_sp_lats
 dir=exp/chain${nnet3_affix}/tdnn${affix}_sp
 train_data_dir=data/${train_set}_sp_hires
 lores_train_data_dir=data/${train_set}_sp
+train_ivector_dir=exp/nnet3/ivectors_${train_set}_sp_hires
 
 for f in $gmm_dir/final.mdl $train_data_dir/feats.scp $train_ivector_dir/ivector_online.scp \
     $lores_train_data_dir/feats.scp $ali_dir/ali.1.gz; do
