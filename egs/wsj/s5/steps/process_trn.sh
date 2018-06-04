@@ -19,4 +19,4 @@ for line in f:
 f.close()
 EOF
 
-cat $OUTPUT.final | tr -d '$' | tr -d ';' 
+cat $OUTPUT.final | tr -d '$' | tr -d ';' | sed -e 's/Ş//g;s/˛//g'

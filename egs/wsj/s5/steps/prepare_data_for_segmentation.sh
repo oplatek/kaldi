@@ -24,11 +24,11 @@ mkdir -p $WDIR
 if [ -z $data ]; then
     data=$WDIR/data
     mkdir -p $data
-    find $input -name *.wav | while read f; do ff=${f##*/}; echo $ff `cat ${f%.*}.trn | steps/process_trn.sh $WDIR/tmpout` ; done | tee $corpus | sort -k1,1 -u > $data/text
-    find $input -name *.wav | while read f; do ff=${f##*/}; echo $ff $f; done | sort -k1,1 -u > $data/wav.scp
-    find $input -name *.wav | while read f; do ff=${f##*/}; echo $ff $ff; done | sort -k1,1 -u > $data/utt2spk
-    find $input -name *.wav | while read f; do ff=${f##*/}; echo $ff $ff; done | sort -k1,1 -u > $data/spk2utt
-    find $input -name *.wav | while read f; do ff=${f##*/}; printf "%s %.2f\n" $ff `soxi -D $f`; done | sort -k1,1 -u > $data/utt2dur
+    find $input -type f -name '*wav' -size +45c | while read f; do ff=${f##*/}; echo $ff `cat ${f%.*}.trn | steps/process_trn.sh $WDIR/tmpout` ; done | tee $corpus | sort -k1,1 -u > $data/text
+    find $input -type f -name '*wav' -size +45c | while read f; do ff=${f##*/}; echo $ff $f; done | sort -k1,1 -u > $data/wav.scp
+    find $input -type f -name '*wav' -size +45c | while read f; do ff=${f##*/}; echo $ff $ff; done | sort -k1,1 -u > $data/utt2spk
+    find $input -type f -name '*wav' -size +45c | while read f; do ff=${f##*/}; echo $ff $ff; done | sort -k1,1 -u > $data/spk2utt
+    find $input -type f -name '*wav' -size +45c | while read f; do ff=${f##*/}; printf "%s %.2f\n" $ff `soxi -D $f`; done | sort -k1,1 -u > $data/utt2dur
     sed -ri 's/^[^ ]+ (.*)$/a\1/' $corpus
     # mv $tmpcorpus $corpus
 fi
@@ -42,10 +42,10 @@ fi
 if $make_feats; then
     echo "Create MFCC features and storing them (Could be large)."
     steps/make_mfcc.sh --mfcc-config conf/mfcc.conf --cmd \
-      "run.pl" --nj $nj $data $data mfcc || exit 1;
+      "run.pl" --nj $nj $data $data $WDIR/mfcc || exit 1;
 #    # Note --fake -> NO CMVN
     steps/compute_cmvn_stats.sh $data \
-      make_mfcc/train mfcc || exit 1;
+      $WDIR/make_mfcc/train $WDIR/mfcc || exit 1;
 fi
 
 if $make_lang; then
