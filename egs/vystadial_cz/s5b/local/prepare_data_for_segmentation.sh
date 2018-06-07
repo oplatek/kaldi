@@ -24,7 +24,7 @@ mkdir -p $WDIR
 if [ -z $data ]; then
     data=$WDIR/data
     mkdir -p $data
-    find $input -type f -name '*wav' -size +45c | while read f; do ff=${f##*/}; echo $ff `cat ${f%.*}.trn | steps/process_trn.sh $WDIR/tmpout` ; done | tee $corpus | sort -k1,1 -u > $data/text
+    find $input -type f -name '*wav' -size +45c | while read f; do ff=${f##*/}; echo $ff `cat ${f%.*}.trn | local/process_trn.sh $WDIR/tmpout` ; done | tee $corpus | sort -k1,1 -u > $data/text
     find $input -type f -name '*wav' -size +45c | while read f; do ff=${f##*/}; echo $ff $f; done | sort -k1,1 -u > $data/wav.scp
     find $input -type f -name '*wav' -size +45c | while read f; do ff=${f##*/}; echo $ff $ff; done | sort -k1,1 -u > $data/utt2spk
     find $input -type f -name '*wav' -size +45c | while read f; do ff=${f##*/}; echo $ff $ff; done | sort -k1,1 -u > $data/spk2utt
@@ -34,7 +34,7 @@ if [ -z $data ]; then
 fi
 
 if [ ! -f $lm ]; then
-    steps/train_lm.sh --remove_numbers true --corpus $corpus --output $lm --vocab `pwd`/vocab-full.txt
+    local/train_lm.sh --remove_numbers true --corpus $corpus --output $lm --vocab `pwd`/vocab-full.txt
     gzip -c $lm > $lm.gz
     lm=$lm
 fi
