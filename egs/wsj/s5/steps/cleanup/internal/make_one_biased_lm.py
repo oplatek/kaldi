@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # Copyright 2016  Johns Hopkins University (Author: Daniel Povey)
 # Apache 2.0.

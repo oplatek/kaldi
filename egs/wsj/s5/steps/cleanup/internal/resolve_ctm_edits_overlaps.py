@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 # Copyright 2014  Johns Hopkins University (Authors: Daniel Povey)
 #           2014  Vijayaditya Peddinti
