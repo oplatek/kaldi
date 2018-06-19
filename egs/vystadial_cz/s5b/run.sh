@@ -10,15 +10,23 @@ outdir="$(dirname $0)/default_out_dir"
 . ./cmd.sh
 . ./path.sh
 
+debug=false  # true | false
 stage=-1
 chain_stage=0
 chain_train_stage=-10
+last_stage=14
+retrain_stage=0
+retrain_train_stage=-10
 
 . utils/parse_options.sh
 
 set -euo pipefail
 
 mkdir -p $data
+
+if [ $debug = true ] ; then
+    set -x
+fi
 
 if [ ! -f PREPARED ] ; then
     printf "\n\n\nThe script should FAIL because the DEPENDENCIES are NOT marked INSTALLED!\n\n\n\n"
@@ -61,9 +69,8 @@ if [ $stage -le 1 ]; then
   done
 fi
 
+mfccdir=mfcc
 if [ $stage -le 2 ]; then
-  mfccdir=mfcc
-
   for part in dev train; do
     steps/make_mfcc.sh --cmd "$train_cmd" --nj 10 data/$part exp/make_mfcc/$part $mfccdir
     steps/compute_cmvn_stats.sh data/$part exp/make_mfcc/$part $mfccdir
@@ -187,3 +194,52 @@ fi
 
 # Don't finish until all background decoding jobs are finished.
 wait
+
+if [ 9 -ge $last_stage ] ; then
+    echo "$0 exiting after because last_stage $last_stage"
+    exit 0
+fi
+
+if [ $stage -le 10 ]; then
+  if [ ! -d $data/vystadialcz2016 ] ; then
+    git clone -b master --depth=1 \
+      https://cro-speech-readonly:iTMBm_mBSyJchM9WA3tz@gitlab.com/cro-speech/vystadialcz2016.git \
+      $data/vystadialcz2016
+  fi
+fi
+
+if [ $stage -le 11 ]; then
+  for part in train dev; do
+    ./local/vystadial2016scp.py $data/vystadialcz2016/data_voip_cs_2016 $part data/vyst2016${part}
+  done
+fi
+
+if [ 11 -ge $last_stage ] ; then
+    echo "$0 exiting after because last_stage $last_stage"
+    exit 0
+fi
+
+if [ $stage -le 12 ]; then
+  for part in vyst2016train vyst2016dev; do
+    steps/make_mfcc.sh --cmd "$train_cmd" --nj 10 data/vyst2016train exp/make_mfcc/vyst2016train $mfccdir
+    steps/compute_cmvn_stats.sh data/vyst2016train exp/make_mfcc/vyst2016train $mfccdir
+  done
+
+fi
+
+if [ $stage -le 13 ]; then
+  echo "align new data with gmm system (default tri3b) needed for chain_stage 11"
+  steps/align_fmllr.sh --nj 10 --cmd "$train_cmd" \
+    data/vyst2016train data/lang_sp exp/tri3b exp/tri3b_ali_vyst2016train_sp
+fi
+
+if [ 13 -ge $last_stage ] ; then
+    echo "$0 exiting after because last_stage $last_stage"
+    exit 0
+fi
+
+# Train a chain model
+if [ $stage -le 14 ]; then
+  init_model=/scratch/oplatek-code/opla/kaldi/egs/vystadial_cz/s5b/default_out_dir/exp/chain/tdnn1a_sp/${retrain_train_stage}.mdl
+  local/chain/retrain_tdnn.sh --input_model $init_model --stage $retrain_stage --train_stage $retrain_train_stage
+fi
