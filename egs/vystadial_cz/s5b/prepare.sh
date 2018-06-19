@@ -7,7 +7,7 @@ src_dir=$GIT_ROOT_PATH/src
 make_parallel=$(grep -c ^processor /proc/cpuinfo)
 srilm_path=/mnt/data/tools/srilm.tgz  # TODO wiki#11 - replace srilm by kenlm and mitlm
 
-source ./utils/parse_options.sh
+source $GIT_ROOT_PATH/egs/wsj/s5/utils/parse_options.sh
 
 echo "Removed file signalling that the dependencies are prepared"
 rm -f PREPARED

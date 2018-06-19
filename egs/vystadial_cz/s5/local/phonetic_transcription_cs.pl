@@ -22,12 +22,6 @@ my $enc = 'utf8';
 
 my $print_coveragetxt_dict = pop @ARGV;
 
-my $out_fn = pop @ARGV;
-if ($out_fn) {
-    close STDOUT;
-    open STDOUT, '>', $out_fn or die "Couldn't open '$out_fn': $!";
-}
-
 
 my $coverage_txt = "žluťoučký kůň úpěl ďábelské ódy V přílivu žluťoučkých květů včelky se vznášejí hleď toť čarovný je loužek kde hedvábné štěstíčka září vodní žíňky běží kolem lesní tůně a kadeřemi svými čeří stříbrosvit měsíce qvído kouzelníkův učeň s ďolíčky utírá prach z vílích křídel ó náhlý úsvit oblažil zemětvář prolínajícím hřejivým dotekem svým";
 
@@ -39,6 +33,12 @@ if ($print_coveragetxt_dict eq "true") {
     exit 0;
 }
 
+my $out_fn = pop @ARGV;
+if ($out_fn) {
+    close STDOUT;
+    open STDOUT, '>', $out_fn or die "Couldn't open '$out_fn': $!";
+}
+
 
 my %seen = ();
 while (<>) {
@@ -48,6 +48,9 @@ while (<>) {
 #            print encode($enc, $_), (' ' x 7), "sp\n";
 #            next
 #        }
+        if (!($_ =~ /^[[:alnum:]]+|_.*/)) {
+            next;
+        }
         transcribe();
     }
 }

@@ -22,6 +22,8 @@ top_n_words=100 # Number of common words that we compile into each graph (most f
                 # in $lang/text.
 stage=-1
 cleanup=true
+make_lang=false
+make_feats=false
 # End configuration options.
 
 echo "$0 $@"  # Print the command line for logging
@@ -29,7 +31,7 @@ echo "$0 $@"  # Print the command line for logging
 [ -f path.sh ] && . ./path.sh # source the path.
 . parse_options.sh || exit 1;
 
-if [ $# != 4 ]; then
+if [ $# != 6 ]; then
   echo "$0: Warning: this script is deprecated and will be removed."
   echo "  ... please use steps/cleanup/clean_and_segment_data.sh,"
   echo " which produces the same output formats as this script"
@@ -48,6 +50,25 @@ data=$1
 lang=$2
 srcdir=$3
 dir=$4
+lm=$5
+alignmodel=$6
+. cmd.sh
+if $make_feats; then
+    echo "Create MFCC features and storing them (Could be large)."
+    steps/make_mfcc.sh --mfcc-config conf/mfcc.conf --cmd \
+      "run.pl" --nj $nj $data $data mfcc || exit 1;
+#    # Note --fake -> NO CMVN
+    steps/compute_cmvn_stats.sh $data \
+      make_mfcc/train mfcc || exit 1;
+fi
+
+if $make_lang; then
+    local/prepare_cs_transcription.sh . $lang/dict
+    local/create_phone_lists.sh $lang/dict
+    utils/prepare_lang.sh $lang/dict '_SIL_' $lang.tmp $lang
+    utils/format_lm.sh $lang $lm $lang/dict/lexicon.txt $lang
+fi
+
 
 for f in $data/text $lang/oov.int $srcdir/tree $srcdir/final.mdl \
     $lang/L_disambig.fst $lang/phones/disambig.int; do
@@ -86,9 +107,11 @@ fi
 if [ -f $srcdir/final.mat ]; then feat_type=lda; else feat_type=delta; fi
 echo "$0: feature type is $feat_type"
 
+alidir=ali
 case $feat_type in
   delta) feats="ark,s,cs:apply-cmvn $cmvn_opts --utt2spk=ark:$sdata/JOB/utt2spk scp:$sdata/JOB/cmvn.scp scp:$sdata/JOB/feats.scp ark:- | add-deltas ark:- ark:- |";;
   lda) feats="ark,s,cs:apply-cmvn $cmvn_opts --utt2spk=ark:$sdata/JOB/utt2spk scp:$sdata/JOB/cmvn.scp scp:$sdata/JOB/feats.scp ark:- | splice-feats $splice_opts ark:- ark:- | transform-feats $srcdir/final.mat ark:- ark:- |"
+  sfeats="ark,s,cs:apply-cmvn $cmvn_opts --utt2spk=ark:$sdata/JOB/utt2spk scp:$sdata/JOB/cmvn.scp scp:$sdata/JOB/feats.scp ark:- | splice-feats $splice_opts ark:- ark:- | transform-feats $alidir/final.mat ark:- ark:- |"
     cp $srcdir/final.mat $srcdir/full.mat $dir
    ;;
   *) echo "$0: invalid feature type $feat_type" && exit 1;
@@ -96,6 +119,27 @@ esac
 if [ -z "$transform_dir" ] && [ -f $srcdir/trans.1 ]; then
   transform_dir=$srcdir
 fi
+
+silphonelist=`cat $lang/phones/silence.csl`
+silence_weight=0.0 # Weight on silence in fMLLR estimation.
+fmllr_update_type=full
+
+set -x
+if [ ! -d $alidir ]; then
+    steps/align_si.sh  --nj $nj --cmd run.pl --use-graphs false \
+        $data $lang $alignmodel $alidir
+fi
+
+cp $alidir/final.mat $alidir/full.mat $dir
+if [ ! -z "$transform_dir" ] && [ ! -f $transform_dir/trans.1 ]; then
+    $cmd JOB=1:$nj $dir/log/fmllr.0.JOB.log \
+      ali-to-post "ark:gunzip -c $alidir/ali.JOB.gz|" ark:- \| tee ali-post \| \
+      weight-silence-post $silence_weight $silphonelist $alidir/final.mdl ark:- ark:- \| \
+      gmm-est-fmllr --fmllr-update-type=$fmllr_update_type \
+      --spk2utt=ark:$sdata/JOB/spk2utt $alidir/final.mdl "$sfeats" \
+      ark:- ark:$transform_dir/trans.JOB || exit 1;
+fi
+
 if [ ! -z "$transform_dir" ]; then
   echo "$0: using transforms from $transform_dir"
   [ ! -f $transform_dir/trans.1 ] && echo "$0: no such file $transform_dir/trans.1" && exit 1;
